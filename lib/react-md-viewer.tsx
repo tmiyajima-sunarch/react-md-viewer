@@ -1,3 +1,3 @@
 export default function ReactMDViewer(): JSX.Element {
-  return <div>react-md-viewer</div>;
+  return <div data-testid="react-md-viewer">react-md-viewer</div>;
 }
