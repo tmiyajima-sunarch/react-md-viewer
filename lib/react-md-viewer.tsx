@@ -26,15 +26,19 @@ export function createMarkdownIt(
 export type ReactMDViewerProps = {
   markdownIt?: MarkdownIt;
   text?: string;
+  debug?: boolean;
 };
 
 export function ReactMDViewer({
   markdownIt = createMarkdownIt(),
   text,
+  debug = process.env.NODE_ENV !== 'production',
 }: ReactMDViewerProps): JSX.Element {
   useEffect(() => {
-    console.debug('children:', text);
-  }, [text]);
+    if (debug) {
+      console.debug('children:', text);
+    }
+  }, [debug, text]);
 
   const tokens = useMemo(
     () => (text ? markdownIt.parse(text, {}) : undefined),
@@ -42,8 +46,10 @@ export function ReactMDViewer({
   );
 
   useEffect(() => {
-    console.debug('tokens:', tokens);
-  }, [tokens]);
+    if (debug) {
+      console.debug('tokens:', tokens);
+    }
+  }, [debug, tokens]);
 
   const transformed = useMemo(
     () => (tokens ? transform(tokens) : undefined),
@@ -51,8 +57,10 @@ export function ReactMDViewer({
   );
 
   useEffect(() => {
-    console.debug('transformed:', transformed);
-  }, [transformed]);
+    if (debug) {
+      console.debug('transformed:', transformed);
+    }
+  }, [debug, transformed]);
 
   console.debug('usedTags:', Array.from(usedTags).sort());
 
@@ -63,9 +71,6 @@ function transform(
   tokens: Token[],
   keyGenerator = createKeyGenerator()
 ): JSX.Element {
-  // TODO: delete
-  console.debug('transform tokens:', tokens);
-
   const stack: JSX.Element[] = [<></>];
 
   for (const token of tokens) {
