@@ -1,6 +1,19 @@
 {
   "name": "react-md-viewer",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "types": "./types/main.d.ts",
+  "files": [
+    "dist",
+    "/types"
+  ],
+  "main": "./dist/react-md-viewer.umd.js",
+  "module": "./dist/react-md-viewer.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/react-md-viewer.es.js",
+      "require": "./dist/react-md-viewer.umd.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -11,6 +24,7 @@
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
+    "@types/node": "16",
     "@types/react": "^17.0.33",
     "@types/react-dom": "^17.0.10",
     "@vitejs/plugin-react": "^1.0.7",
