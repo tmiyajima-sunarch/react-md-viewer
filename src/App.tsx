@@ -1,45 +1,73 @@
-import { useState } from 'react'
-import logo from './logo.svg'
-import './App.css'
+import React, { useCallback, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { ReactMDViewer } from '../lib';
+import initialText from './initial.md?raw';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [text, setText] = useState(initialText);
+
+  const onChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = event.target.value;
+      setText(value);
+    },
+    []
+  );
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
-            count is: {count}
-          </button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div
+      style={{
+        margin: '0 auto',
+        maxWidth: '60rem',
+        display: 'flex',
+        justifyContent: 'stretch',
+        alignItems: 'stretch',
+        minHeight: '100vh',
+      }}
+    >
+      <div
+        style={{
+          flex: '1',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '0.5rem',
+        }}
+      >
+        <h1>Editor</h1>
+        <textarea style={{ flex: '1', padding: '0.5rem' }} onChange={onChange}>
+          {text}
+        </textarea>
+      </div>
+      <div
+        style={{
+          flex: '1',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '0.5rem',
+        }}
+      >
+        <h1>Viewer</h1>
+        <div
+          style={{
+            flex: '1',
+            border: '1px solid #666',
+            padding: '0.5rem',
+          }}
+        >
+          <ErrorBoundary
+            fallbackRender={(props) => (
+              <pre style={{ color: 'red' }}>
+                {props.error.name}: {props.error.message}
+                {props.error.stack}
+              </pre>
+            )}
           >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
-      </header>
+            <ReactMDViewer text={text} />
+          </ErrorBoundary>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

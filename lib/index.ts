@@ -1,1 +1,1 @@
-export { default } from './react-md-viewer';
+export * from './react-md-viewer';
