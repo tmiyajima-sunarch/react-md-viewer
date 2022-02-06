@@ -1,15 +1,7 @@
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
-import {
-  Children,
-  cloneElement,
-  createElement,
-  useEffect,
-  useMemo,
-} from 'react';
+import { Children, cloneElement, createElement, useMemo } from 'react';
 import { createKeyGenerator, KeyGenerator } from './utils';
-
-const usedTags = new Set<string>();
 
 export const DefaultMarkdownItOptions: MarkdownIt.Options = {
   breaks: true,
@@ -20,49 +12,27 @@ export const DefaultMarkdownItOptions: MarkdownIt.Options = {
 export function createMarkdownIt(
   options: MarkdownIt.Options = DefaultMarkdownItOptions
 ): MarkdownIt {
-  return MarkdownIt(DefaultMarkdownItOptions);
+  return MarkdownIt(options);
 }
 
 export type ReactMDViewerProps = {
   markdownIt?: MarkdownIt;
   text?: string;
-  debug?: boolean;
 };
 
 export function ReactMDViewer({
   markdownIt = createMarkdownIt(),
   text,
-  debug = process.env.NODE_ENV !== 'production',
 }: ReactMDViewerProps): JSX.Element {
-  useEffect(() => {
-    if (debug) {
-      console.debug('children:', text);
-    }
-  }, [debug, text]);
-
   const tokens = useMemo(
     () => (text ? markdownIt.parse(text, {}) : undefined),
     [text, markdownIt]
   );
 
-  useEffect(() => {
-    if (debug) {
-      console.debug('tokens:', tokens);
-    }
-  }, [debug, tokens]);
-
   const transformed = useMemo(
     () => (tokens ? transform(tokens) : undefined),
     [tokens]
   );
-
-  useEffect(() => {
-    if (debug) {
-      console.debug('transformed:', transformed);
-    }
-  }, [debug, transformed]);
-
-  console.debug('usedTags:', Array.from(usedTags).sort());
 
   return <div data-testid="react-md-viewer">{transformed}</div>;
 }
@@ -74,10 +44,6 @@ function transform(
   const stack: JSX.Element[] = [<></>];
 
   for (const token of tokens) {
-    if (token.tag) {
-      usedTags.add(token.tag);
-    }
-
     switch (token.nesting) {
       case 1: {
         const element = createNestElement(token, keyGenerator);
