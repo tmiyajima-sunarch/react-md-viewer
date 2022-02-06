@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ReactMDViewer } from '../lib';
 import initialText from './initial.md?raw';
+import styles from './App.module.css';
 
 function App() {
   const [text, setText] = useState(initialText);
@@ -15,45 +16,16 @@ function App() {
   );
 
   return (
-    <div
-      style={{
-        margin: '0 auto',
-        maxWidth: '60rem',
-        display: 'flex',
-        justifyContent: 'stretch',
-        alignItems: 'stretch',
-        minHeight: '100vh',
-      }}
-    >
-      <div
-        style={{
-          flex: '1',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '0.5rem',
-        }}
-      >
+    <div className={styles.root}>
+      <div className={styles.column}>
         <h1>Editor</h1>
-        <textarea style={{ flex: '1', padding: '0.5rem' }} onChange={onChange}>
+        <textarea className={styles.editor} onChange={onChange}>
           {text}
         </textarea>
       </div>
-      <div
-        style={{
-          flex: '1',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '0.5rem',
-        }}
-      >
+      <div className={styles.column}>
         <h1>Viewer</h1>
-        <div
-          style={{
-            flex: '1',
-            border: '1px solid #666',
-            padding: '0.5rem',
-          }}
-        >
+        <div className={styles.viewer}>
           <ErrorBoundary
             fallbackRender={(props) => (
               <pre style={{ color: 'red' }}>
@@ -62,7 +34,16 @@ function App() {
               </pre>
             )}
           >
-            <ReactMDViewer text={text} />
+            <ReactMDViewer
+              text={text}
+              classNames={{
+                blockquote: styles.blockquote,
+                ul: styles.ul,
+                ol: styles.ol,
+                code: styles.code,
+                pre: styles.pre,
+              }}
+            />
           </ErrorBoundary>
         </div>
       </div>

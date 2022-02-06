@@ -18,11 +18,13 @@ export function createMarkdownIt(
 export type ReactMDViewerProps = {
   markdownIt?: MarkdownIt;
   text?: string;
+  classNames?: Record<string, string>;
 };
 
 export function ReactMDViewer({
   markdownIt = createMarkdownIt(),
   text,
+  classNames,
 }: ReactMDViewerProps): JSX.Element {
   const tokens = useMemo(
     () => (text ? markdownIt.parse(text, {}) : undefined),
@@ -30,23 +32,31 @@ export function ReactMDViewer({
   );
 
   const transformed = useMemo(
-    () => (tokens ? transform(tokens) : undefined),
-    [tokens]
+    () => (tokens ? transform(tokens, { classNames }) : undefined),
+    [classNames, tokens]
   );
 
   return <div data-testid="react-md-viewer">{transformed}</div>;
 }
 
+type TransformOptions = {
+  keyGenerator?: KeyGenerator;
+  classNames?: Record<string, string>;
+};
+
 function transform(
   tokens: Token[],
-  keyGenerator = createKeyGenerator()
+  {
+    keyGenerator = createKeyGenerator(),
+    classNames = {},
+  }: TransformOptions = {}
 ): JSX.Element {
   const stack: JSX.Element[] = [<></>];
 
   for (const token of tokens) {
     switch (token.nesting) {
       case 1: {
-        const element = createNestElement(token, keyGenerator);
+        const element = createNestElement(token, keyGenerator, classNames);
         stack.push(element);
         break;
       }
@@ -62,7 +72,7 @@ function transform(
       }
 
       case 0: {
-        const element = createFlatElement(token, keyGenerator);
+        const element = createFlatElement(token, keyGenerator, classNames);
         const parent = stack.pop();
         checkDefined(parent, 'No parent element');
         const newParent = cloneElementAddingChildren(parent, [element]);
@@ -85,35 +95,47 @@ function transform(
 
 function createNestElement(
   token: Token,
-  keyGenerator: KeyGenerator
+  keyGenerator: KeyGenerator,
+  classNames: Record<string, string>
 ): JSX.Element {
   const tag = determinTag(token);
   const props = attrsToProps(token.attrs);
-  return createElement(tag, { key: keyGenerator(), ...props });
+  const className = joinClassNames(props.className, classNames[tag]);
+  return createElement(tag, { key: keyGenerator(), ...props, className });
 }
 
 function createFlatElement(
   token: Token,
-  keyGenerator: KeyGenerator
+  keyGenerator: KeyGenerator,
+  classNames: Record<string, string>
 ): JSX.Element {
   // imgの場合、children内にaltの内容が含まれてくるが、
   // それをそのままElementのchildrenにしてしまうとエラーになるため、特別対処が必要
   // contentにもaltの内容が入るため、それを使用する
   if (token.tag === 'img') {
-    return createElement('img', {
-      ...attrsToProps(token.attrs),
+    const tag = 'img';
+    const props = attrsToProps(token.attrs);
+    const className = joinClassNames(props.className, classNames[tag]);
+    return createElement(tag, {
+      ...props,
       alt: token.content,
+      className,
     });
   }
 
   const tag = determinTag(token);
   const props = attrsToProps(token.attrs);
+  const className = joinClassNames(props.className, classNames[tag]);
   const children = token.children
-    ? transform(token.children, keyGenerator)
+    ? transform(token.children, { keyGenerator, classNames })
     : token.content
     ? token.content
     : undefined;
-  return createElement(tag, { key: keyGenerator(), ...props }, children);
+  return createElement(
+    tag,
+    { key: keyGenerator(), ...props, className },
+    children
+  );
 }
 
 function determinTag(token: Token): string {
@@ -126,6 +148,10 @@ function determinTag(token: Token): string {
   }
 
   return token.block ? 'div' : 'span';
+}
+
+function joinClassNames(...classNames: (string | undefined)[]): string {
+  return classNames.filter(Boolean).join(' ');
 }
 
 function cloneElementAddingChildren(
